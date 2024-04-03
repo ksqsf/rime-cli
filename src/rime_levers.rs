@@ -84,6 +84,7 @@ mod tests {
     use claims::assert_ok;
     use lazy_static::lazy_static;
     use std::fs::{read_to_string, write};
+    use std::io::ErrorKind;
     use std::sync::Once;
 
     lazy_static! {
@@ -94,7 +95,11 @@ mod tests {
 
     fn 預備() {
         預備本場測試.call_once(|| {
-            assert_ok!(std::fs::remove_dir_all(&*測試場地));
+            match std::fs::remove_dir_all(&*測試場地) {
+                Ok(()) => {}
+                Err(e) if e.kind() == ErrorKind::NotFound => {}
+                e @ _ => assert_ok!(e),
+            }
             assert_ok!(設置引擎啓動參數(&測試場地));
         })
     }
